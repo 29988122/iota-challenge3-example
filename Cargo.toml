@@ -1,14 +1,13 @@
 [package]
 name = "iota-challenge3-example"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-iota-sdk = { git = "https://github.com/iotaledger/iota", package = "iota-sdk" }
-iota-keys = { git = "https://github.com/iotaledger/iota", package = "iota-keys" }
-shared-crypto = { git = "https://github.com/iotaledger/iota", package = "shared-crypto" }
-move-core-types = { git = "https://github.com/iotaledger/iota", package = "move-core-types" }
-tokio = { version = "1.2", features = ["full"] }
-anyhow = "1.0"
-bcs = "0.1"
+iota-sdk = { git = "https://github.com/iotaledger/iota", branch = "develop", package = "iota-sdk" }
+iota-keys = { git = "https://github.com/iotaledger/iota", branch = "develop", package = "iota-keys" }
+shared-crypto = { git = "https://github.com/iotaledger/iota", branch = "develop", package = "shared-crypto" }
+move-core-types = { git = "https://github.com/iotaledger/iota", branch = "develop", package = "move-core-types" }
+tokio = { version = "1.28", features = ["full"] }
 dirs = "5.0"
+bcs = "0.1"

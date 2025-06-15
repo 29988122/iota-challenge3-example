@@ -1,0 +1,18 @@
+   Compiling iota-challenge3-example v0.1.0 (/home/a29988122/iota-challenge3-example)
+error[E0599]: no method named `make_move_vec` found for struct `ProgrammableTransactionBuilder` in the current scope
+   --> src/main.rs:118:24
+    |
+118 |     let coin_vec = ptb.make_move_vec(Some(mintcoin_type.clone()), vec![coin2, coin3])?;
+    |                        ^^^^^^^^^^^^^
+    |
+help: there is a method `make_obj_vec` with a similar name, but with different arguments
+   --> /home/a29988122/.cargo/git/checkouts/iota-9a03ad60c9097a1b/246f462/crates/iota-types/src/programmable_transaction_builder.rs:128:5
+    |
+128 | /     pub fn make_obj_vec(
+129 | |         &mut self,
+130 | |         objs: impl IntoIterator<Item = ObjectArg>,
+131 | |     ) -> anyhow::Result<Argument> {
+    | |_________________________________^
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `iota-challenge3-example` (bin "iota-challenge3-example") due to 1 previous error
