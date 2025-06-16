@@ -16,6 +16,7 @@ The solution is a straightforward, two-transaction process:
     This initial transaction is simple: it calls the `mint_coin` function three times to create three `Coin` objects, each with a value of 2.
 2.  **Transaction 2: The Logic Core (via PTB)**
     I use a `ProgrammableTransactionBuilder` (`ptb2` in the code) to build a sequence of commands that will be executed in order on the network.
+
     a.  **Define Inputs (`ptb2.input(...)`)**:
         -   First, I declare all the "ingredients" this transaction will need. This includes:
             -   The three `Coin` objects we just minted.
