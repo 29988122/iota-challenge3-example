@@ -25,15 +25,15 @@ const SHARED_COUNTER_ID: &str = "0xc3716689fa16bd8d8bf33ce1036b00740c8818ab9826d
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("🎯 Challenge 3: Starting multi-transaction flow...");
+    println!("Challenge 3: Starting multi-transaction flow");
 
-    println!("🔗 Connecting to IOTA testnet...");
+    println!("Connecting to IOTA testnet");
     let client = IotaClientBuilder::default()
         .build("https://api.testnet.iota.cafe")
         .await?;
-    println!("✅ Connected to IOTA testnet");
+    println!("Connected to IOTA testnet");
 
-    println!("🔑 Loading keystore...");
+    println!("Loading keystore");
     let keystore_path = dirs::home_dir()
         .ok_or("Failed to get home directory")?
         .join(".iota")
@@ -46,23 +46,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("No addresses in keystore".into());
     }
     let sender_address = addresses[0];
-    println!("✅ Using address: {}", sender_address);
+    println!("Using address: {}", sender_address);
 
-    println!("💰 Getting coins for gas...");
+    println!("Getting coins for gas");
     let coins = client
         .coin_read_api()
         .get_coins(sender_address, None, None, None)
         .await?;
     
     let gas_coin = coins.data.get(0).ok_or("No coins found for gas")?;
-    println!("✅ Found {} gas coins", coins.data.len());
+    println!("Found {} gas coins", coins.data.len());
     
-    println!("⛽ Getting gas price...");
+    println!("Getting gas price");
     let gas_price = client.read_api().get_reference_gas_price().await?;
-    println!("✅ Gas price: {}", gas_price);
+    println!("Gas price: {}", gas_price);
 
-    // --- 交易 1: 鑄造三個 MINTCOIN ---
-    println!("\n--- 交易 1: 鑄造 MINTCOINs ---");
+    // mint coins
+    println!("\n--- Transaction 1: Mint MINTCOINs ---");
     let mut ptb1 = ProgrammableTransactionBuilder::new();
 
     let treasury_cap_arg = ptb1.input(CallArg::Object(ObjectArg::SharedObject {
@@ -71,7 +71,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         mutable: true,
     }))?;
 
-    // 呼叫三次 mint_coin
+    // mint 3 coins
     for i in 1..=3 {
         ptb1.command(Command::MoveCall(Box::new(ProgrammableMoveCall {
             package: ObjectID::from_str(PACKAGE_ID)?,
@@ -91,10 +91,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         gas_price,
     );
     
-    println!("✍️ 簽署交易 1...");
+    println!("Signing transaction 1");
     let signature1 = keystore.sign_secure(&sender_address, &tx_data1, Intent::iota_transaction())?;
     
-    println!("📤 執行交易 1...");
+    println!("Executing transaction 1");
     let response1 = client
         .quorum_driver_api()
         .execute_transaction_block(
@@ -104,19 +104,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .await?;
 
-    println!("✅ 交易 1 已執行!");
-    println!("🔗 交易摘要: {:?}", response1.digest);
+    println!("Transaction 1 executed");
+    println!("Transaction digest: {:?}", response1.digest);
 
     if let Some(effects) = &response1.effects {
-        println!("✨ 交易 1 效果: {:#?}", effects);
+        println!("Transaction 1 effects: {:#?}", effects);
     }
-    println!("✅ 交易 1 已發送 (請手動檢查是否成功)!");
+    println!("Transaction 1 sent! (Please check if successful)");
 
-    // --- 等待 & 尋找新鑄造的 Coins ---
-    println!("\n⏳ 等待 5 秒讓網路狀態同步...");
+    // wait for sync
+    println!("\nWaiting 5 seconds for network sync");
     tokio::time::sleep(Duration::from_secs(5)).await;
 
-    println!("🔍 尋找新鑄造的 MINTCOINs...");
+    println!("Looking for newly minted MINTCOINs");
     let coin_type = format!("{}::mintcoin::MINTCOIN", PACKAGE_ID);
     let mint_coins = client
         .coin_read_api()
@@ -124,16 +124,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     if mint_coins.data.len() < 3 {
-        return Err(format!("需要的 MINTCOIN 不足。預期 >= 3, 找到 {}", mint_coins.data.len()).into());
+        return Err(format!("Not enough MINTCOINs. Expected >= 3, found {}", mint_coins.data.len()).into());
     }
-    println!("✅ 找到 {} 個 MINTCOINs", mint_coins.data.len());
+    println!("Found {} MINTCOINs", mint_coins.data.len());
 
     let coin_ref1 = mint_coins.data[0].object_ref();
     let coin_ref2 = mint_coins.data[1].object_ref();
     let coin_ref3 = mint_coins.data[2].object_ref();
     
-    // --- 交易 2: 合併、分割、取旗標 ---
-    println!("\n--- 交易 2: 合併, 分割 & 取得旗標 ---");
+    // merge, split, get flag
+    println!("\n--- Transaction 2: Merge, split & get flag ---");
     let mut ptb2 = ProgrammableTransactionBuilder::new();
 
     let mintcoin_type_tag = TypeTag::Struct(Box::new(StructTag {
@@ -153,7 +153,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let coin2_arg = ptb2.input(CallArg::Object(ObjectArg::ImmOrOwnedObject(coin_ref2)))?;
     let coin3_arg = ptb2.input(CallArg::Object(ObjectArg::ImmOrOwnedObject(coin_ref3)))?;
 
-    // Step A: Merge coins
+    // join coins
     ptb2.command(Command::MoveCall(Box::new(ProgrammableMoveCall {
         package: ObjectID::from_str("0x2")?,
         module: Identifier::new("coin")?,
@@ -172,19 +172,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     })));
     println!("  - Command: join(coin1, coin3)");
     
-    // Step B: Split the merged coin to get one coin of value 5
-    let pure_data = bcs::to_bytes(&5u64)?; // The value to split off
+    // Split to get exactly 5 units
+    let pure_data = bcs::to_bytes(&5u64)?; // We need exactly 5 units
     let value_arg = ptb2.input(CallArg::Pure(pure_data))?;
     let coin_with_5 = ptb2.command(Command::MoveCall(Box::new(ProgrammableMoveCall {
-        package: ObjectID::from_str("0x2")?, // Use standard 'coin' package
+        package: ObjectID::from_str("0x2")?, // Use standard coin package
         module: Identifier::new("coin")?,
-        function: Identifier::new("split")?, // Use standard 'split' function
+        function: Identifier::new("split")?, // Split function to get exact amount
         type_arguments: vec![mintcoin_type_tag.clone()],
-        arguments: vec![coin1_arg, value_arg], // The coin to split from, and the value to take
+        arguments: vec![coin1_arg, value_arg], // Split 5 units from merged coin
     })));
     println!("  - Command: split(merged_coin, 5)");
 
-    // Step D: Call get_flag with the extracted coin and transfer the returned flag
+    // get flag
     ptb2.command(Command::MoveCall(Box::new(ProgrammableMoveCall {
         package: ObjectID::from_str(PACKAGE_ID)?,
         module: Identifier::new("mintcoin")?,
@@ -194,7 +194,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     })));
     println!("  - Command: get_flag(counter, coin_with_5)");
     
-    // Transfer the coin with value 5 after get_flag (in case it's not consumed)
+    // transfer back
     let move_address = AccountAddress::from_str(&sender_address.to_string())?;
     let addr_arg = ptb2.input(CallArg::Pure(bcs::to_bytes(&move_address)?))?;
     
@@ -204,14 +204,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     println!("  - Command: transfer_objects(coin_with_5, sender)");
     
-    // Step E: Transfer the remaining coin (value 1) back to self to avoid drop error
+    // Send remaining coin back to ourselves too
     ptb2.command(Command::TransferObjects(
         vec![coin1_arg],
         addr_arg,
     ));
     println!("  - Command: transfer_objects(remaining_coin, sender)");
-    
-    // Gas coin needs to be fetched again as state might have changed
+
+    // Get fresh gas coin for transaction 2
     let gas_coins2 = client
         .coin_read_api()
         .get_coins(sender_address, None, None, None)
@@ -226,10 +226,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         gas_price,
     );
 
-    println!("✍️ 簽署交易 2...");
+    println!("Signing transaction 2");
     let signature2 = keystore.sign_secure(&sender_address, &tx_data2, Intent::iota_transaction())?;
 
-    println!("📤 執行交易 2...");
+    println!("Executing transaction 2");
     let response2 = client
         .quorum_driver_api()
         .execute_transaction_block(
@@ -239,12 +239,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .await?;
 
-    println!("✅ 交易 2 已執行!");
-    println!("🔗 交易摘要: {:?}", response2.digest);
+    println!("Transaction 2 executed");
+    println!("Transaction digest: {:?}", response2.digest);
 
     if let Some(effects) = &response2.effects {
-        println!("✨ 最終交易效果: {:#?}", effects);
-        println!("\n\n🎉🎉🎉 交易 2 已完成! 請檢查上面的效果以確認是否成功! 🎉🎉🎉");
+        println!("Final transaction effects: {:#?}", effects);
+        println!("\nTransaction 2 completed! Check the effects above to confirm success!");
     }
 
     Ok(())
