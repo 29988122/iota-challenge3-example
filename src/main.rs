@@ -1,7 +1,7 @@
 use iota_sdk::{
     IotaClientBuilder,
     types::{
-        base_types::{ObjectID, IotaAddress},
+        base_types::ObjectID,
         programmable_transaction_builder::ProgrammableTransactionBuilder,
         transaction::{Command, TransactionData, CallArg, ObjectArg, ProgrammableMoveCall},
         Identifier,
