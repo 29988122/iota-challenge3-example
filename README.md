@@ -1,7 +1,3 @@
-Of course. Here is a professional, GitHub-ready `README.md` file for this project, written in English.
-
----
-
 # IOTA Move CTF - Challenge #3 Solver (Rust)
 
 This repository contains a Rust-based solution for **Challenge #3 ("Mint Coin")** of the IOTA Move CTF. The program interacts directly with the IOTA Testnet using the official `iota-sdk` for Rust to solve the challenge by minting, merging, and splitting custom Move `Coin` objects.
